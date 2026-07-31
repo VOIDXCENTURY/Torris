@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TORRIS — Luxury Shirts For Modern Men</title>
+<meta name="description" content="TORRIS — premium streetwear and luxury shirts, crafted with precision for the modern man." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Lenis smooth scroll -->
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          torblack: '#0B0B0B',
+          torgray: '#1B1B1B',
+          torgold: '#D4AF37',
+          torgoldlight: '#E8CA6B',
+          torsilver: '#C8C8C8',
+        },
+        fontFamily: {
+          heading: ['Poppins', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --gold: #D4AF37;
+    --gold-light:#E8CA6B;
+    --black: #0B0B0B;
+    --gray: #1B1B1B;
+    --silver:#C8C8C8;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ background:var(--black); color:#fff; overflow-x:hidden; scroll-behavior:auto; }
+  body{ font-family:'Inter', sans-serif; cursor:none; }
+  h1,h2,h3,h4,.font-heading{ font-family:'Poppins', sans-serif; }
+
+  ::selection{ background:var(--gold); color:#0B0B0B; }
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-track{ background:#0B0B0B; }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(#D4AF37,#8a701f); border-radius:10px; }
+
+  @media (hover:none){ body{ cursor:auto; } .cursor-dot,.cursor-ring{ display:none; } }
+
+  /* ---------- Custom cursor ---------- */
+  .cursor-dot, .cursor-ring{
+    position:fixed; top:0; left:0; pointer-events:none; z-index:9999;
+    border-radius:50%; transform:translate(-50%,-50%);
+    mix-blend-mode:difference;
+  }
+  .cursor-dot{ width:6px; height:6px; background:#D4AF37; }
+  .cursor-ring{ width:34px; height:34px; border:1px solid rgba(212,175,55,.7); transition:width .25s,height .25s,border-color .25s,background .25s; }
+  .cursor-ring.big{ width:70px; height:70px; background:rgba(212,175,55,.08); border-color:#D4AF37; }
+
+  /* ---------- Loader ---------- */
+  #loader{ position:fixed; inset:0; background:#0B0B0B; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:22px; }
+  #loader svg{ width:min(70vw,420px); }
+  #loaderPath{ fill:none; stroke:#D4AF37; stroke-width:1.4; stroke-dasharray:6 7; stroke-linecap:round; }
+  #loaderWord{ letter-spacing:.5em; font-size:12px; color:#9c9c9c; font-family:'Inter'; }
+
+  /* ---------- Stitch divider (signature element) ---------- */
+  .stitch{
+    height:1px; width:100%;
+    background-image: repeating-linear-gradient(90deg, #D4AF37 0 10px, transparent 10px 20px);
+    opacity:.55;
+  }
+  .stitch-v{
+    width:1px;
+    background-image: repeating-linear-gradient(180deg, #D4AF37 0 8px, transparent 8px 16px);
+    opacity:.5;
+  }
+  .scroll-progress{
+    position:fixed; top:0; left:0; height:3px; width:100%; z-index:9998; transform-origin:0 50%;
+    background-image: repeating-linear-gradient(90deg, #D4AF37 0 14px, transparent 14px 26px);
+    transform: scaleX(0);
+  }
+
+  /* ---------- Nav ---------- */
+  #navbar{ transition: background-color .5s ease, padding .4s ease, border-color .5s ease, backdrop-filter .5s ease; border-bottom:1px solid transparent; }
+  #navbar.scrolled{ background-color: rgba(11,11,11,.82); backdrop-filter: blur(14px); border-color: rgba(212,175,55,.18); }
+  .nav-link{ position:relative; }
+  .nav-link::after{
+    content:''; position:absolute; left:0; bottom:-6px; height:1px; width:0%; background:#D4AF37; transition:width .35s ease;
+  }
+  .nav-link:hover::after{ width:100%; }
+
+  /* ---------- Buttons ---------- */
+  .btn-gold{
+    position:relative; overflow:hidden; isolation:isolate;
+    background:linear-gradient(120deg,#D4AF37,#E8CA6B,#D4AF37);
+    background-size:200% auto;
+    color:#0B0B0B; font-weight:600;
+  }
+  .btn-gold:hover{ background-position:right center; box-shadow:0 0 35px rgba(212,175,55,.45); }
+  .btn-outline{
+    border:1px solid rgba(212,175,55,.6); color:#fff; transition:all .4s ease;
+  }
+  .btn-outline:hover{ background:#D4AF37; color:#0B0B0B; box-shadow:0 0 35px rgba(212,175,55,.35); }
+  .ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); animation:rip .6s ease-out forwards; pointer-events:none; }
+  @keyframes rip{ to{ transform:scale(3); opacity:0; } }
+
+  /* ---------- Glass ---------- */
+  .glass{
+    background:rgba(27,27,27,.55);
+    border:1px solid rgba(212,175,55,.16);
+    backdrop-filter: blur(18px);
+  }
+
+  /* ---------- Product card ---------- */
+  .card{ perspective:1200px; }
+  .card-inner{ transition: transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease; transform-style:preserve-3d; }
+  .card:hover .card-inner{ box-shadow:0 30px 60px -20px rgba(212,175,55,.25), 0 10px 30px rgba(0,0,0,.6); }
+  .card-img{ transition: transform 1.1s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+  .card:hover .card-img{ transform:scale(1.09); }
+  .fav-btn{ transition: all .35s ease; }
+  .fav-btn.active{ color:#D4AF37; border-color:#D4AF37; }
+  .quickview{ transform:translateY(14px); opacity:0; transition:all .45s cubic-bezier(.2,.8,.2,1); }
+  .card:hover .quickview{ transform:translateY(0); opacity:1; }
+
+  /* ---------- gold glow text ---------- */
+  .gold-text{ background:linear-gradient(120deg,#E8CA6B,#D4AF37 40%,#8a701f 60%,#D4AF37 80%,#E8CA6B); background-size:250% auto; -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  .reveal-up{ opacity:0; transform:translateY(60px); }
+  .reveal-fade{ opacity:0; }
+  .reveal-scale{ opacity:0; transform:scale(.9); }
+
+  .marquee-track{ display:flex; width:max-content; animation: marquee 32s linear infinite; }
+  .marquee-track.reverse{ animation-direction: reverse; }
+  @keyframes marquee{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+  .trend-track{ display:flex; gap:24px; width:max-content; }
+
+  .spot{ position:absolute; inset:0; pointer-events:none; transition:background .1s; }
+
+  /* Testimonial slider */
+  .test-track{ display:flex; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+
+  input::placeholder{ color:#9c9c9c; }
+  input:focus{ outline:none; }
+
+  .float{ animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-16px);} }
+
+  .lift{ transition:transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s ease; }
+  .lift:hover{ transform:translateY(-8px); box-shadow:0 20px 45px -18px rgba(212,175,55,.3); }
+
+  .num-badge{ font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 768px){
+    body{ cursor:auto; }
+  }
+</style>
+</head>
+<body class="bg-torblack text-white antialiased">
+
+<!-- Custom cursor -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <svg viewBox="0 0 420 60" xmlns="http://www.w3.org/2000/svg">
+    <path id="loaderPath" d="M10,30 Q60,5 110,30 T210,30 T310,30 T410,30" />
+  </svg>
+  <div id="loaderWord">TORRIS</div>
+</div>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ================= NAVBAR ================= -->
+<header id="navbar" class="fixed top-0 left-0 w-full z-[999] px-6 md:px-10 py-5">
+  <div class="max-w-[1500px] mx-auto flex items-center justify-between">
+    <a href="#home" class="font-heading font-extrabold text-2xl md:text-3xl tracking-[0.18em] gold-text" data-cursor="big">TORRIS</a>
+
+    <nav class="hidden lg:flex items-center gap-10 font-body text-sm tracking-wide text-torsilver">
+      <a href="#home" class="nav-link hover:text-white transition-colors">Home</a>
+      <a href="#shop" class="nav-link hover:text-white transition-colors">Shop</a>
+      <a href="#collections" class="nav-link hover:text-white transition-colors">Collections</a>
+      <a href="#about" class="nav-link hover:text-white transition-colors">About</a>
+      <a href="#reviews" class="nav-link hover:text-white transition-colors">Reviews</a>
+      <a href="#contact" class="nav-link hover:text-white transition-colors">Contact</a>
+    </nav>
+
+    <div class="flex items-center gap-4 md:gap-5">
+      <button data-cursor="big" class="hover:text-torgold transition-colors" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <button data-cursor="big" class="hidden sm:inline-flex hover:text-torgold transition-colors relative" aria-label="Wishlist">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+      </button>
+      <button data-cursor="big" class="hover:text-torgold transition-colors relative" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.6a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+        <span class="absolute -top-2 -right-2 bg-torgold text-torblack text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
+      </button>
+      <button data-cursor="big" class="hidden sm:inline-flex hover:text-torgold transition-colors" aria-label="Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+      </button>
+      <button id="menuBtn" class="lg:hidden" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="lg:hidden hidden flex-col mt-6 gap-5 font-body text-torsilver text-lg glass rounded-2xl p-6">
+    <a href="#home" class="mobile-link">Home</a>
+    <a href="#shop" class="mobile-link">Shop</a>
+    <a href="#collections" class="mobile-link">Collections</a>
+    <a href="#about" class="mobile-link">About</a>
+    <a href="#reviews" class="mobile-link">Reviews</a>
+    <a href="#contact" class="mobile-link">Contact</a>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section id="home" class="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-torblack">
+  <canvas id="particles" class="absolute inset-0 w-full h-full opacity-70"></canvas>
+  <div class="spot" id="spotlight"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.10),transparent_60%)]"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-torblack"></div>
+
+  <div id="heroParallax" class="relative z-10 text-center px-6 max-w-5xl mx-auto pt-24">
+    <p id="heroEyebrow" class="tracking-[0.5em] text-torgold text-xs md:text-sm mb-6 font-body">EST. TAILORED PRECISION</p>
+    <h1 class="font-heading font-black leading-[0.95] text-[16vw] md:text-[8.5rem] tracking-tight">
+      <span class="block gold-text hero-word">TORRIS</span>
+    </h1>
+    <p class="hero-word font-heading text-xl md:text-3xl mt-6 text-torsilver font-medium">Luxury Shirts For Modern Men</p>
+    <p class="hero-word font-body text-sm md:text-base text-torsilver/70 mt-4 max-w-xl mx-auto">Luxury premium shirts crafted with precision — where tailoring meets modern ambition.</p>
+
+    <div class="hero-word mt-10 flex flex-col sm:flex-row items-center justify-center gap-5">
+      <a href="#shop" class="magnetic btn-gold px-10 py-4 rounded-full font-heading tracking-wide text-sm">SHOP NOW</a>
+      <a href="#collections" class="magnetic btn-outline px-10 py-4 rounded-full font-heading tracking-wide text-sm">EXPLORE COLLECTION</a>
+    </div>
+  </div>
+
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-torsilver/60 z-10">
+    <span class="text-[10px] tracking-[0.4em]">SCROLL</span>
+    <div class="w-[1px] h-10 bg-gradient-to-b from-torgold to-transparent"></div>
+  </div>
+</section>
+
+<!-- ================= MARQUEE ================= -->
+<div class="border-y border-torgold/15 bg-torgray/40 py-4 overflow-hidden">
+  <div class="marquee-track font-heading text-sm tracking-[0.35em] text-torsilver/70">
+    <span class="px-8">FORMAL &nbsp;•&nbsp; CASUAL &nbsp;•&nbsp; LUXURY &nbsp;•&nbsp; SLIM FIT &nbsp;•&nbsp; OVERSIZED &nbsp;•&nbsp; LINEN &nbsp;•&nbsp; COTTON &nbsp;•&nbsp; BUSINESS &nbsp;•&nbsp; PREMIUM &nbsp;•&nbsp;</span>
+    <span class="px-8">FORMAL &nbsp;•&nbsp; CASUAL &nbsp;•&nbsp; LUXURY &nbsp;•&nbsp; SLIM FIT &nbsp;•&nbsp; OVERSIZED &nbsp;•&nbsp; LINEN &nbsp;•&nbsp; COTTON &nbsp;•&nbsp; BUSINESS &nbsp;•&nbsp; PREMIUM &nbsp;•&nbsp;</span>
+  </div>
+</div>
+
+<!-- ================= CATEGORIES ================= -->
+<section id="collections" class="py-28 px-6 md:px-10 max-w-[1500px] mx-auto">
+  <div class="text-center mb-16 reveal-up">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4">CURATED FOR YOU</p>
+    <h2 class="font-heading font-bold text-4xl md:text-6xl">Shop by Category</h2>
+  </div>
+  <div id="catGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+    <!-- injected by JS -->
+  </div>
+</section>
+
+<div class="max-w-[1500px] mx-auto px-6 md:px-10"><div class="stitch"></div></div>
+
+<!-- ================= FEATURED COLLECTION ================= -->
+<section id="shop" class="py-28 px-6 md:px-10 max-w-[1500px] mx-auto">
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6 reveal-up">
+    <div>
+      <p class="tracking-[0.4em] text-torgold text-xs mb-4">FEATURED COLLECTION</p>
+      <h2 class="font-heading font-bold text-4xl md:text-6xl">Signature Shirts</h2>
+    </div>
+    <p class="text-torsilver/70 max-w-sm font-body">Each piece is finished by hand — precision stitching, breathable premium fabric, cut for the modern silhouette.</p>
+  </div>
+  <div id="featuredGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <!-- injected by JS -->
+  </div>
+</section>
+
+<!-- ================= TRENDING CAROUSEL ================= -->
+<section class="py-20 bg-torgray/30 border-y border-torgold/10 overflow-hidden">
+  <div class="max-w-[1500px] mx-auto px-6 md:px-10 mb-10 flex items-end justify-between reveal-up">
+    <div>
+      <p class="tracking-[0.4em] text-torgold text-xs mb-4">RIGHT NOW</p>
+      <h2 class="font-heading font-bold text-3xl md:text-5xl">Trending Products</h2>
+    </div>
+  </div>
+  <div class="overflow-hidden px-6 md:px-10" id="trendWrap">
+    <div class="trend-track" id="trendTrack"></div>
+  </div>
+</section>
+
+<!-- ================= BEST SELLERS ================= -->
+<section class="py-28 px-6 md:px-10 max-w-[1500px] mx-auto">
+  <div class="text-center mb-16 reveal-up">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4">MOST LOVED</p>
+    <h2 class="font-heading font-bold text-4xl md:text-6xl">Best Sellers</h2>
+  </div>
+  <div id="bestGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+</section>
+
+<!-- ================= STATS ================= -->
+<section class="relative py-24 px-6 md:px-10 bg-torgray/40 border-y border-torgold/10">
+  <div class="max-w-[1500px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+    <div class="reveal-up">
+      <div class="font-heading font-black text-4xl md:text-6xl gold-text num-badge"><span data-count="50" data-suffix="K+">0</span></div>
+      <p class="mt-3 text-torsilver text-sm tracking-wide">Happy Customers</p>
+    </div>
+    <div class="reveal-up">
+      <div class="font-heading font-black text-4xl md:text-6xl gold-text num-badge"><span data-count="250" data-suffix="K+">0</span></div>
+      <p class="mt-3 text-torsilver text-sm tracking-wide">Shirts Sold</p>
+    </div>
+    <div class="reveal-up">
+      <div class="font-heading font-black text-4xl md:text-6xl gold-text num-badge"><span data-count="4.9" data-decimal="1" data-suffix="">0</span></div>
+      <p class="mt-3 text-torsilver text-sm tracking-wide">Average Rating</p>
+    </div>
+    <div class="reveal-up">
+      <div class="font-heading font-black text-4xl md:text-6xl gold-text num-badge"><span data-count="120" data-suffix="">0</span></div>
+      <p class="mt-3 text-torsilver text-sm tracking-wide">Countries Shipped</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY CHOOSE ================= -->
+<section class="py-28 px-6 md:px-10 max-w-[1500px] mx-auto">
+  <div class="text-center mb-16 reveal-up">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4">THE TORRIS PROMISE</p>
+    <h2 class="font-heading font-bold text-4xl md:text-6xl">Why Choose TORRIS</h2>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6" id="whyGrid"></div>
+</section>
+
+<!-- ================= REVIEWS ================= -->
+<section id="reviews" class="py-28 bg-torgray/30 border-y border-torgold/10 overflow-hidden">
+  <div class="max-w-[1500px] mx-auto px-6 md:px-10 text-center mb-16 reveal-up">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4">TESTIMONIALS</p>
+    <h2 class="font-heading font-bold text-4xl md:text-6xl">Customer Reviews</h2>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6 relative">
+    <div class="overflow-hidden">
+      <div class="test-track" id="testTrack"></div>
+    </div>
+    <div class="flex justify-center gap-3 mt-10" id="testDots"></div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section id="about" class="py-28 px-6 md:px-10 max-w-[1500px] mx-auto grid lg:grid-cols-2 gap-16 items-center">
+  <div class="relative reveal-scale">
+    <div class="absolute -inset-4 border border-torgold/25 rounded-2xl"></div>
+    <img loading="lazy" src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1000&q=80" onerror="this.onerror=null;this.src=fallbackImg('About TORRIS')" class="rounded-2xl w-full h-[520px] object-cover" alt="Folded premium shirts">
+    <div class="absolute -bottom-8 -left-8 glass rounded-2xl p-6 w-56 float hidden md:block">
+      <p class="font-heading font-bold text-3xl gold-text">12+</p>
+      <p class="text-xs text-torsilver mt-1">Years of Craftsmanship</p>
+    </div>
+  </div>
+  <div class="about-text">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4 reveal-fade">OUR STORY</p>
+    <h2 class="font-heading font-bold text-4xl md:text-5xl mb-6 reveal-up">Tailored for those who refuse to blend in.</h2>
+    <p class="text-torsilver/80 leading-relaxed mb-4 reveal-up font-body">TORRIS was founded on a single idea: the modern man deserves clothing built with the same precision as fine architecture. Every shirt begins as raw premium cotton and Belgian linen, cut by hand and finished with reinforced stitching that outlasts trend cycles.</p>
+    <p class="text-torsilver/80 leading-relaxed mb-8 reveal-up font-body">From our atelier to your wardrobe, we obsess over the details so you don't have to — silhouette, drape, breathability, and a finish that photographs as good as it feels.</p>
+    <a href="#shop" class="magnetic btn-outline inline-block px-9 py-4 rounded-full font-heading text-sm tracking-wide reveal-up">DISCOVER THE ATELIER</a>
+  </div>
+</section>
+
+<!-- ================= NEWSLETTER ================= -->
+<section id="contact" class="relative py-28 px-6 md:px-10 overflow-hidden">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.14),transparent_65%)]"></div>
+  <div class="relative max-w-3xl mx-auto text-center reveal-scale">
+    <p class="tracking-[0.4em] text-torgold text-xs mb-4">STAY IN THE LOOP</p>
+    <h2 class="font-heading font-bold text-4xl md:text-6xl mb-6">Join The Inner Circle</h2>
+    <p class="text-torsilver/70 mb-10 font-body">Early access to drops, private sales, and style notes from the TORRIS atelier.</p>
+    <form id="newsForm" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+      <input required type="email" placeholder="Enter your email" class="flex-1 bg-torgray/60 border border-torgold/25 rounded-full px-6 py-4 text-sm focus:border-torgold transition-colors">
+      <button type="submit" id="newsBtn" class="magnetic btn-gold px-8 py-4 rounded-full font-heading text-sm tracking-wide relative">
+        <span id="newsBtnText">SUBSCRIBE</span>
+      </button>
+    </form>
+    <p id="newsMsg" class="text-torgold text-sm mt-5 opacity-0 transition-opacity">Welcome to the circle. Check your inbox ✦</p>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="border-t border-torgold/15 pt-20 pb-8 px-6 md:px-10">
+  <div class="max-w-[1500px] mx-auto grid grid-cols-2 md:grid-cols-5 gap-10 mb-16">
+    <div class="col-span-2">
+      <a href="#home" class="font-heading font-extrabold text-2xl tracking-[0.18em] gold-text">TORRIS</a>
+      <p class="text-torsilver/60 text-sm mt-4 max-w-xs font-body">Luxury shirts for the modern man — crafted with precision, worn with intent.</p>
+      <div class="flex gap-4 mt-6">
+        <a href="#" class="footer-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+        <a href="#" class="footer-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a href="#" class="footer-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></a>
+        <a href="#" class="footer-icon" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/></svg></a>
+      </div>
+    </div>
+    <div>
+      <p class="font-heading font-semibold mb-5 text-sm tracking-wide">Shop</p>
+      <ul class="space-y-3 text-sm text-torsilver/70 font-body">
+        <li><a href="#shop" class="hover:text-torgold transition-colors">New Arrivals</a></li>
+        <li><a href="#collections" class="hover:text-torgold transition-colors">Collections</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Best Sellers</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Gift Cards</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-heading font-semibold mb-5 text-sm tracking-wide">Company</p>
+      <ul class="space-y-3 text-sm text-torsilver/70 font-body">
+        <li><a href="#about" class="hover:text-torgold transition-colors">About Us</a></li>
+        <li><a href="#reviews" class="hover:text-torgold transition-colors">Reviews</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Careers</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-heading font-semibold mb-5 text-sm tracking-wide">Policies</p>
+      <ul class="space-y-3 text-sm text-torsilver/70 font-body">
+        <li><a href="#" class="hover:text-torgold transition-colors">Shipping</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">30-Day Returns</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Privacy Policy</a></li>
+        <li><a href="#" class="hover:text-torgold transition-colors">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="stitch mb-8"></div>
+  <div class="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-torsilver/50 font-body">
+    <p>© 2026 TORRIS. All rights reserved.</p>
+    <p class="tracking-[0.3em]">CRAFTED WITH PRECISION</p>
+  </div>
+</footer>
+
+<style>
+  .footer-icon{ width:38px; height:38px; border:1px solid rgba(212,175,55,.3); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#C8C8C8; transition:all .35s ease; }
+  .footer-icon:hover{ background:#D4AF37; color:#0B0B0B; border-color:#D4AF37; transform:translateY(-3px); }
+  .mobile-link{ border-bottom:1px solid rgba(212,175,55,.12); padding-bottom:14px; }
+</style>
+
+<script>
+/* ============ DATA ============ */
+const fallbackImg = (label) => {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='900' height='1100'><rect width='100%' height='100%' fill='#1B1B1B'/><rect x='20' y='20' width='860' height='1060' fill='none' stroke='#D4AF37' stroke-opacity='0.4'/><text x='50%' y='50%' font-family='Poppins,sans-serif' font-size='42' fill='%23D4AF37' text-anchor='middle' dominant-baseline='middle'>TORRIS</text></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+};
+
+const products = [
+  { name:"Classic Black Shirt", price:"$189", cat:"Luxury", rating:4.9, img:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=900&q=80" },
+  { name:"White Linen Shirt", price:"$159", cat:"Linen", rating:4.8, img:"https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?auto=format&fit=crop&w=900&q=80" },
+  { name:"Royal Blue Shirt", price:"$175", cat:"Formal", rating:4.9, img:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=900&q=80" },
+  { name:"Olive Premium Shirt", price:"$169", cat:"Casual", rating:4.7, img:"https://images.unsplash.com/photo-1618453292459-53bf5e5f2ce9?auto=format&fit=crop&w=900&q=80" },
+  { name:"Beige Luxury Shirt", price:"$199", cat:"Premium", rating:5.0, img:"https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80" },
+  { name:"Slim Fit Charcoal", price:"$179", cat:"Slim Fit", rating:4.8, img:"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=80" },
+  { name:"Oversized Studio Tee-Shirt", price:"$149", cat:"Oversized", rating:4.6, img:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=900&q=80" },
+  { name:"Business Cotton Shirt", price:"$185", cat:"Business", rating:4.9, img:"https://images.unsplash.com/photo-1571945153237-4929e783af4a?auto=format&fit=crop&w=900&q=80" },
+  { name:"Ivory Folded Essential", price:"$165", cat:"Cotton", rating:4.7, img:"https://images.unsplash.com/photo-1622445275576-721325763afe?auto=format&fit=crop&w=900&q=80" },
+  { name:"Midnight Studio Shirt", price:"$209", cat:"Luxury", rating:5.0, img:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=900&q=80" },
+  { name:"Sand Linen Resort Shirt", price:"$155", cat:"Linen", rating:4.6, img:"https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=900&q=80" },
+  { name:"Heritage Formal White", price:"$195", cat:"Formal", rating:4.9, img:"https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=900&q=80" },
+];
+
+const categories = [
+  {n:"Formal", img:products[10].img}, {n:"Casual", img:products[3].img}, {n:"Luxury", img:products[0].img},
+  {n:"Slim Fit", img:products[5].img}, {n:"Oversized", img:products[6].img}, {n:"Linen", img:products[1].img},
+  {n:"Cotton", img:products[8].img}, {n:"Business", img:products[7].img}, {n:"Premium", img:products[4].img}, {n:"New Drop", img:products[9].img}
+];
+
+const whyItems = [
+  { t:"Premium Fabric", d:"Belgian linen & long-staple cotton.", icon:"fabric" },
+  { t:"Luxury Stitching", d:"Hand-finished reinforced seams.", icon:"stitch" },
+  { t:"Fast Delivery", d:"Express shipping to 120 countries.", icon:"truck" },
+  { t:"30-Day Returns", d:"No questions asked, ever.", icon:"return" },
+  { t:"Lifetime Style", d:"Cuts that outlast every season.", icon:"star" },
+];
+
+const icons = {
+  fabric:`<path d="M4 7h16M4 12h16M4 17h10"/>`,
+  stitch:`<path d="M3 12h3M8 12h3M13 12h3M18 12h3" stroke-dasharray="2 3"/>`,
+  truck:`<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/>`,
+  return:`<path d="M4 4v6h6"/><path d="M4.5 13a8 8 0 1 0 2-9.5L4 10"/>`,
+  star:`<path d="m12 3 2.6 5.7 6.2.6-4.7 4.2 1.4 6.1L12 16.9l-5.5 2.7 1.4-6.1L3.2 9.3l6.2-.6z"/>`,
+};
+
+const reviews = [
+  { name:"Ahmed Raza", role:"Verified Buyer", text:"The fit and fabric feel genuinely luxury — easily the best shirt I've owned. Worth every rupee.", stars:5, img:"https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=80" },
+  { name:"Daniyal Khan", role:"Verified Buyer", text:"Stitching quality is on another level. Feels like a designer brand at a fraction of the price.", stars:5, img:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" },
+  { name:"Sara Malik", role:"Verified Buyer", text:"Bought the linen shirt for my husband — the packaging alone felt premium. Delivery was fast too.", stars:5, img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" },
+  { name:"Hassan Ali", role:"Verified Buyer", text:"TORRIS redefined what I expect from streetwear. Minimal, elegant, and built to last.", stars:5, img:"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80" },
+];
+
+/* ============ Loader ============ */
+window.addEventListener('load', () => {
+  gsap.to('#loaderPath', { strokeDashoffset: -400, duration: 2.4, ease:'power1.inOut', repeat:-1 });
+  gsap.to('#loader', {
+    opacity:0, duration:.9, delay:1.3, ease:'power2.inOut',
+    onComplete: () => { document.getElementById('loader').style.display='none'; startPageAnimations(); }
+  });
+});
+
+/* ============ Lenis smooth scroll ============ */
+let lenis;
+try{
+  lenis = new Lenis({ duration:1.15, easing:(t)=>Math.min(1,1.001-Math.pow(2,-10*t)), smoothWheel:true });
+  function raf(time){ lenis.raf(time); requestAnimationFrame(raf); }
+  requestAnimationFrame(raf);
+  lenis.on('scroll', ScrollTrigger && ScrollTrigger.update);
+}catch(e){}
+
+gsap.registerPlugin(ScrollTrigger);
+if(lenis){ gsap.ticker.add((time)=>{ lenis.raf(time*1000); }); gsap.ticker.lagSmoothing(0); }
+
+/* ============ Custom cursor ============ */
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx=innerWidth/2,my=innerHeight/2, rx=mx, ry=my;
+window.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; dot.style.left=mx+'px'; dot.style.top=my+'px'; });
+(function loop(){ rx += (mx-rx)*0.16; ry += (my-ry)*0.16; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+document.querySelectorAll('a,button,[data-cursor]').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>ring.classList.add('big'));
+  el.addEventListener('mouseleave', ()=>ring.classList.remove('big'));
+});
+
+/* ============ Mouse spotlight (hero) ============ */
+const spot = document.getElementById('spotlight');
+const heroSection = document.getElementById('home');
+heroSection.addEventListener('mousemove', e=>{
+  const r = heroSection.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  spot.style.background = `radial-gradient(400px circle at ${x}px ${y}px, rgba(212,175,55,0.14), transparent 70%)`;
+});
+
+/* ============ Particles canvas ============ */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resizeCanvas(){ canvas.width = heroSection.offsetWidth; canvas.height = heroSection.offsetHeight; }
+function initParticles(){
+  resizeCanvas();
+  particles = Array.from({length: 70}, () => ({
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+    r: Math.random()*1.8+0.4, vy: Math.random()*0.35+0.08, vx:(Math.random()-0.5)*0.15,
+    o: Math.random()*0.5+0.15
+  }));
+}
+function animateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.y -= p.vy; p.x += p.vx;
+    if(p.y < -10) p.y = canvas.height+10;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(212,175,55,${p.o})`;
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  requestAnimationFrame(animateParticles);
+}
+initParticles(); animateParticles();
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
+
+/* ============ Hero parallax ============ */
+window.addEventListener('mousemove', e=>{
+  const x = (e.clientX/innerWidth - 0.5) * 20;
+  const y = (e.clientY/innerHeight - 0.5) * 20;
+  gsap.to('#heroParallax', { x, y, duration:1, ease:'power2.out' });
+});
+
+/* ============ Navbar scroll state ============ */
+const navbar = document.getElementById('navbar');
+(lenis||window).on ? lenis.on('scroll', ()=>{ toggleNav(); }) : window.addEventListener('scroll', toggleNav);
+function toggleNav(){
+  const y = lenis ? lenis.scroll : window.scrollY;
+  navbar.classList.toggle('scrolled', y > 40);
+  updateProgress();
+}
+window.addEventListener('scroll', toggleNav);
+
+function updateProgress(){
+  const doc = document.documentElement;
+  const scrollTop = (lenis && lenis.scroll) ? lenis.scroll : (doc.scrollTop || window.scrollY);
+  const height = doc.scrollHeight - doc.clientHeight;
+  const pct = Math.min(1, scrollTop / height);
+  document.getElementById('scrollProgress').style.transform = `scaleX(${pct})`;
+}
+
+/* ============ Mobile menu ============ */
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn.addEventListener('click', ()=>{
+  const open = mobileMenu.classList.toggle('flex');
+  mobileMenu.classList.toggle('hidden');
+});
+mobileMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>{ mobileMenu.classList.add('hidden'); mobileMenu.classList.remove('flex'); }));
+
+/* ============ Magnetic buttons ============ */
+document.querySelectorAll('.magnetic').forEach(btn=>{
+  btn.addEventListener('mousemove', e=>{
+    const r = btn.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width/2;
+    const y = e.clientY - r.top - r.height/2;
+    gsap.to(btn, { x:x*0.3, y:y*0.4, duration:.4, ease:'power2.out' });
+  });
+  btn.addEventListener('mouseleave', ()=>{ gsap.to(btn, { x:0, y:0, duration:.6, ease:'elastic.out(1,0.4)' }); });
+  btn.addEventListener('click', function(e){
+    const rect = this.getBoundingClientRect();
+    const rip = document.createElement('span');
+    rip.className='ripple';
+    rip.style.left = (e.clientX-rect.left)+'px';
+    rip.style.top = (e.clientY-rect.top)+'px';
+    this.style.position='relative';
+    this.appendChild(rip);
+    setTimeout(()=>rip.remove(),650);
+  });
+});
+
+/* ============ Star rating markup ============ */
+function starRow(rating){
+  const full = Math.floor(rating);
+  let s='';
+  for(let i=0;i<5;i++){
+    s += `<svg width="13" height="13" viewBox="0 0 24 24" fill="${i<full?'#D4AF37':'none'}" stroke="#D4AF37" stroke-width="1.4"><path d="m12 3 2.6 5.7 6.2.6-4.7 4.2 1.4 6.1L12 16.9l-5.5 2.7 1.4-6.1L3.2 9.3l6.2-.6z"/></svg>`;
+  }
+  return s;
+}
+
+/* ============ Render categories ============ */
+const catGrid = document.getElementById('catGrid');
+categories.forEach((c,i)=>{
+  catGrid.insertAdjacentHTML('beforeend', `
+    <div class="cat-card lift relative rounded-2xl overflow-hidden aspect-[3/4] group reveal-up cursor-pointer" data-cursor>
+      <img loading="lazy" src="${c.img}" onerror="this.onerror=null;this.src=fallbackImg('${c.n}')" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${c.n} shirts">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
+      <div class="absolute bottom-0 left-0 p-4 md:p-5">
+        <p class="font-heading font-semibold text-sm md:text-base">${c.n}</p>
+      </div>
+    </div>
+  `);
+});
+
+/* ============ Render featured products ============ */
+function productCard(p, badge){
+  return `
+  <div class="card reveal-up">
+    <div class="card-inner glass rounded-2xl overflow-hidden relative">
+      ${badge ? `<span class="absolute top-4 left-4 z-10 bg-torgold text-torblack text-[10px] font-bold px-3 py-1 rounded-full tracking-wide">${badge}</span>` : ''}
+      <button class="fav-btn absolute top-4 right-4 z-10 w-9 h-9 rounded-full border border-white/20 flex items-center justify-center bg-black/30" onclick="this.classList.toggle('active')" aria-label="Add to wishlist">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M12.1 20.3 5 13.2C2.6 10.8 2.6 7 5 4.6c2.3-2.3 6-2.3 8.3 0l.2.2.2-.2c2.3-2.3 6-2.3 8.3 0 2.4 2.4 2.4 6.2 0 8.6l-7.1 7.1c-.5.5-1.3.5-1.8 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <div class="overflow-hidden aspect-[4/5]">
+        <img loading="lazy" src="${p.img}" onerror="this.onerror=null;this.src=fallbackImg('${p.name}')" class="card-img w-full h-full object-cover" alt="${p.name}">
+      </div>
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-[11px] tracking-[0.3em] text-torgold">${p.cat.toUpperCase()}</p>
+          <div class="flex items-center gap-1">${starRow(p.rating)}<span class="text-xs text-torsilver ml-1">${p.rating}</span></div>
+        </div>
+        <h3 class="font-heading font-semibold text-lg mb-1">${p.name}</h3>
+        <p class="text-torsilver/80 font-body">${p.price}</p>
+        <div class="quickview mt-4 flex gap-3">
+          <button class="flex-1 btn-gold text-xs font-heading tracking-wide py-3 rounded-full relative overflow-hidden magnetic">ADD TO CART</button>
+          <button class="btn-outline text-xs font-heading tracking-wide px-4 py-3 rounded-full magnetic">QUICK VIEW</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+document.getElementById('featuredGrid').innerHTML = products.slice(0,6).map((p,i)=>productCard(p, i===0?'BESTSELLER':(i===2?'NEW':''))).join('');
+
+/* ============ Best sellers grid ============ */
+document.getElementById('bestGrid').innerHTML = products.slice(3,7).map(p=>productCard(p,'')).join('');
+
+/* ============ Trending carousel ============ */
+const trendTrack = document.getElementById('trendTrack');
+const trendItems = [...products, ...products].map(p => `
+  <div class="min-w-[240px] md:min-w-[280px] glass rounded-2xl overflow-hidden lift">
+    <div class="overflow-hidden aspect-[4/5]">
+      <img loading="lazy" src="${p.img}" onerror="this.onerror=null;this.src=fallbackImg('${p.name}')" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110" alt="${p.name}">
+    </div>
+    <div class="p-4">
+      <p class="text-[10px] tracking-[0.3em] text-torgold mb-1">${p.cat.toUpperCase()}</p>
+      <h4 class="font-heading font-semibold text-sm">${p.name}</h4>
+      <p class="text-torsilver/70 text-sm mt-1">${p.price}</p>
+    </div>
+  </div>
+`).join('');
+trendTrack.innerHTML = trendItems;
+
+let trendX = 0, trendPaused = false;
+function trendLoop(){
+  if(!trendPaused){
+    trendX -= 0.6;
+    const resetPoint = -(trendTrack.scrollWidth/2);
+    if(trendX < resetPoint) trendX = 0;
+    trendTrack.style.transform = `translateX(${trendX}px)`;
+  }
+  requestAnimationFrame(trendLoop);
+}
+trendLoop();
+document.getElementById('trendWrap').addEventListener('mouseenter', ()=>trendPaused=true);
+document.getElementById('trendWrap').addEventListener('mouseleave', ()=>trendPaused=false);
+
+/* ============ Why choose ============ */
+document.getElementById('whyGrid').innerHTML = whyItems.map(w => `
+  <div class="lift glass rounded-2xl p-8 text-center reveal-up">
+    <div class="w-14 h-14 mx-auto mb-5 rounded-full border border-torgold/40 flex items-center justify-center text-torgold why-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${icons[w.icon]}</svg>
+    </div>
+    <h3 class="font-heading font-semibold mb-2">${w.t}</h3>
+    <p class="text-torsilver/60 text-sm font-body">${w.d}</p>
+  </div>
+`).join('');
+
+/* ============ Testimonials ============ */
+const testTrack = document.getElementById('testTrack');
+const testDots = document.getElementById('testDots');
+testTrack.innerHTML = reviews.map(r => `
+  <div class="min-w-full px-4">
+    <div class="glass rounded-3xl p-10 md:p-14 text-center">
+      <div class="flex justify-center mb-5">${starRow(r.stars)}</div>
+      <p class="text-lg md:text-xl font-body text-torsilver/90 leading-relaxed mb-8">"${r.text}"</p>
+      <div class="flex items-center justify-center gap-4">
+        <img loading="lazy" src="${r.img}" onerror="this.onerror=null;this.src=fallbackImg('T')" class="w-12 h-12 rounded-full object-cover border-2 border-torgold/50" alt="${r.name}">
+        <div class="text-left">
+          <p class="font-heading font-semibold text-sm">${r.name}</p>
+          <p class="text-torsilver/50 text-xs">${r.role}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+`).join('');
+testDots.innerHTML = reviews.map((_,i)=>`<button class="test-dot w-2.5 h-2.5 rounded-full ${i===0?'bg-torgold':'bg-torsilver/30'} transition-colors" data-i="${i}"></button>`).join('');
+
+let testIdx = 0;
+function goTest(i){
+  testIdx = (i+reviews.length)%reviews.length;
+  testTrack.style.transform = `translateX(-${testIdx*100}%)`;
+  document.querySelectorAll('.test-dot').forEach((d,j)=>d.classList.toggle('bg-torgold', j===testIdx));
+}
+document.querySelectorAll('.test-dot').forEach(d=>d.addEventListener('click', ()=>goTest(+d.dataset.i)));
+setInterval(()=>goTest(testIdx+1), 5000);
+
+/* ============ Newsletter ============ */
+document.getElementById('newsForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const msg = document.getElementById('newsMsg');
+  msg.style.opacity = 1;
+  this.reset();
+  setTimeout(()=>msg.style.opacity=0, 4000);
+});
+
+/* ============ Counters ============ */
+function animateCounter(el){
+  const target = parseFloat(el.dataset.count);
+  const decimals = el.dataset.decimal ? parseInt(el.dataset.decimal) : 0;
+  const suffix = el.dataset.suffix || '';
+  const obj = { val: 0 };
+  gsap.to(obj, {
+    val: target, duration: 2.2, ease:'power2.out',
+    onUpdate: () => { el.textContent = obj.val.toFixed(decimals) + suffix; }
+  });
+}
+
+/* ============ Scroll reveals via ScrollTrigger ============ */
+function startPageAnimations(){
+  gsap.set('.hero-word', { opacity:0, y:40 });
+  gsap.to('#heroEyebrow', { opacity:1, y:0, duration:1, ease:'power3.out', delay:.1 });
+  gsap.to('.hero-word', { opacity:1, y:0, duration:1.1, ease:'power3.out', stagger:.12, delay:.2 });
+
+  document.querySelectorAll('.reveal-up').forEach(el=>{
+    gsap.to(el, {
+      opacity:1, y:0, duration:1, ease:'power3.out',
+      scrollTrigger:{ trigger: el, start:'top 88%' }
+    });
+  });
+  document.querySelectorAll('.reveal-fade').forEach(el=>{
+    gsap.to(el, { opacity:1, duration:1.2, ease:'power2.out', scrollTrigger:{ trigger: el, start:'top 90%' } });
+  });
+  document.querySelectorAll('.reveal-scale').forEach(el=>{
+    gsap.to(el, { opacity:1, scale:1, duration:1.1, ease:'power3.out', scrollTrigger:{ trigger: el, start:'top 85%' } });
+  });
+
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    ScrollTrigger.create({
+      trigger: el, start:'top 85%', once:true,
+      onEnter: () => animateCounter(el)
+    });
+  });
+
+  gsap.utils.toArray('.card').forEach((card,i)=>{
+    gsap.fromTo(card, { opacity:0, y:70, rotateX:8 }, {
+      opacity:1, y:0, rotateX:0, duration:1, ease:'power3.out', delay:(i%3)*0.05,
+      scrollTrigger:{ trigger: card, start:'top 90%' }
+    });
+  });
+
+  gsap.utils.toArray('.cat-card').forEach((c,i)=>{
+    gsap.fromTo(c, { opacity:0, y:50 }, {
+      opacity:1, y:0, duration:.8, ease:'power3.out', delay:(i%5)*0.06,
+      scrollTrigger:{ trigger: c, start:'top 92%' }
+    });
+  });
+
+  ScrollTrigger.refresh();
+}
+
+// Fallback if load event already fired quickly
+if(document.readyState === 'complete'){ setTimeout(()=>{ if(document.getElementById('loader').style.display !== 'none'){} }, 0); }
+</script>
+</body>
+</html>
